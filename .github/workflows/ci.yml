@@ -26,12 +26,10 @@ jobs:
         run: poetry config virtualenvs.in-project true
 
       - name: Instalar dependências
-        # O --no-root garante que o Poetry não tente instalar o seu projeto como uma biblioteca, evitando o erro de "package-mode"
         run: poetry install --no-root
 
       - name: Executar Auditoria Estática (Bandit)
-        # O -x .venv força o Bandit a ignorar a pasta do ambiente virtual, mesmo se ele falhar ao ler o pyproject.toml
-        run: poetry run bandit -r . -x .venv
+        run: poetry run bandit -r . -x "**/.venv/**,*/.venv/*,.venv"
 
       - name: Executar Verificação de Dependências (Safety)
         run: poetry run safety check
