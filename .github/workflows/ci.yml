@@ -1,0 +1,40 @@
+name: SecOps Pipeline
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  security-and-quality:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out do repositório
+        uses: actions/checkout@v4
+
+      - name: Configurar Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar o Poetry
+        run: pip install poetry
+
+      - name: Configurar o Poetry
+        run: poetry config virtualenvs.in-project true
+
+      - name: Instalar dependências
+        # O --no-root garante que o Poetry não tente instalar o seu projeto como uma biblioteca, evitando o erro de "package-mode"
+        run: poetry install --no-root
+
+      - name: Executar Auditoria Estática (Bandit)
+        # O -x .venv força o Bandit a ignorar a pasta do ambiente virtual, mesmo se ele falhar ao ler o pyproject.toml
+        run: poetry run bandit -r . -x .venv
+
+      - name: Executar Verificação de Dependências (Safety)
+        run: poetry run safety check
+
+      - name: Executar Linter e Qualidade (Ruff)
+        run: poetry run ruff check .
